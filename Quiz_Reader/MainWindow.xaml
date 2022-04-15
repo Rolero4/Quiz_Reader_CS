@@ -5,7 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Quiz_Reader"
         mc:Ignorable="d"
-        Title="Quiz" Height="450" Width="1000">
+        Title="Quiz" Height="450" Width="1000" 
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        >
 
     <Window.Background>
         <LinearGradientBrush  StartPoint="0.5,0.9" EndPoint="0.5,0.2"  >
@@ -51,6 +54,8 @@
             <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
         </Style>
 
+
+
         <Style x:Key="answer" TargetType="CheckBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="Black"/>
@@ -86,12 +91,15 @@
         <!--Question-->
         <TextBlock x:Name="text_block" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center"
                  Style="{StaticResource text}" Text="Pytanie 1" />
-        
-        <TextBlock x:Name="summary_text_block" Grid.Column="3" Grid.Row="2" Grid.RowSpan="4" HorizontalAlignment="Center"
-                   Width="800" Height="250" 
-                 Style="{StaticResource text}" Text="no podsumowanie kekw" />
 
-
+        <!--Summary text_block-->
+        <ScrollViewer x:Name="Scroll" Grid.Column="3" Grid.Row="2" Grid.RowSpan="4"
+                      ScrollViewer.VerticalScrollBarVisibility="Hidden">
+            <TextBlock x:Name="summary_text" Grid.Column="3" Grid.Row="2" Grid.RowSpan="4" 
+                       Width="Auto" Height="Auto" FontSize="25" VerticalAlignment="Top"
+                       HorizontalAlignment="Stretch" TextWrapping="Wrap" Style="{StaticResource text}" 
+                       Text="no podsumowanie" ScrollViewer.CanContentScroll="True"/>
+        </ScrollViewer>
         <!--clock-->
         <TextBlock x:Name="clock" Grid.Column="3"
                    Width="120" Margin="756,6,0,0" FontSize="35" HorizontalAlignment="Left" Height="40" Text="0:00"
@@ -107,11 +115,11 @@
         <Button x:Name="end_button" Grid.Row="0" Width="130" Height="30"
                 Grid.Column="2" Grid.ColumnSpan="2" Content="Zakończ" 
                 Style="{StaticResource function_button}" Margin="13,4,0,14" Click="end_button_Click"/>
-        
+
         <Button x:Name="end_summary_button" Grid.Row="0" Width="250" Height="30"
                 Grid.Column="2" Grid.ColumnSpan="2" Content="Zakończ Podsumowanie" 
                 Style="{StaticResource function_button}" Margin="13,4,0,14" Click="end_summary_button_Click"/>
-        
+
         <!--arrows-->
         <Button x:Name="next_button" Grid.Column="4" Grid.Row="3" Content=">" 
                 Style="{StaticResource prev_next_button}" Margin="23,4,10,4" Click="next_button_Click"/>
@@ -132,9 +140,5 @@
         <CheckBox x:Name="button_3" Grid.Column="3" Grid.Row="5" 
                    Content="Odpowiedź D" Style="{StaticResource answer}" 
                    Click="button_answer_Checked" Width="Auto" Margin="10,0,0,0" HorizontalAlignment="Stretch"/>
-
-        
-        <!--test-->
-        <TextBlock x:Name="test" Grid.Column="3" Grid.Row="4" HorizontalAlignment="Right"/>
     </Grid>
 </Window>

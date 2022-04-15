@@ -38,6 +38,7 @@ namespace Quiz_Reader
         public int sec;
         public int min;
         public string time = "";
+        DispatcherTimer disTmr = new DispatcherTimer();
 
 
 
@@ -49,8 +50,36 @@ namespace Quiz_Reader
             _quiz = new Quiz();
             DecryptQuiz();
             start();
+            disTmr.Tick += new EventHandler(disTmr_Tick);
+            disTmr.Interval = TimeSpan.FromSeconds(1);
+            disTmr.Start();
+            disTmr.IsEnabled = false;
         }
-        
+        private void shuffle_quiz()
+        {
+            for(int i = _quiz.Questions.Count()-1; i>=0; i--)
+            {
+                Random random = new Random();
+                int random_int = random.Next(i);
+                var question = _quiz.Questions[random_int];
+                _quiz.Questions[random_int] = _quiz.Questions[i];
+                _quiz.Questions[i] = question;
+            }
+        }
+        private void shuffle_answers() 
+        {
+            for (int i = 0; i< _quiz.Questions.Count()-1; i++)
+            {
+                for (int j = 3; j >= 0; j--)
+                {
+                    Random random = new Random();
+                    int random_int = random.Next(j);
+                    var answer = _quiz.Questions[i].Answers[random_int];
+                    _quiz.Questions[i].Answers[random_int] = _quiz.Questions[i].Answers[j];
+                    _quiz.Questions[i].Answers[j] = answer;
+                }
+            }
+        }
         private void start()
         {
             text_block.Text = "Aby rozpocząć Quiz kliknij przycisk: rozpocznij";
@@ -60,18 +89,27 @@ namespace Quiz_Reader
             button_3.Visibility = (Visibility)1;
             clock.Visibility = (Visibility)1;
 
+            shuffle_quiz();
+            if(_quiz.RandomOrderAnswers)
+            {
+                shuffle_answers();
+            }
+
             players_answers = new int[_quiz.Questions.Count()][];
 
-            for (int i = 0; i < _quiz.Questions.Count(); i++) //nie dziala
+            for (int i = 0; i < _quiz.Questions.Count(); i++)
             {
                 int[] line = new int[] { 0, 0, 0, 0 };
                 players_answers[i] = line;
             }
 
+            uncheck();
+
+            time = "0:00";
             sec = 0;
             min = 0;
 
-            summary_text_block.Visibility = (Visibility)1;
+            summary_text.Visibility = (Visibility)1;
 
             start_button.IsEnabled = true;
             start_button.Visibility = 0;
@@ -82,7 +120,6 @@ namespace Quiz_Reader
             prev_button.Visibility = (Visibility)1;
             next_button.Visibility = (Visibility)1;
         }
-
         private void DecryptQuiz()
         {
             LoadQuizXML();
@@ -104,7 +141,6 @@ namespace Quiz_Reader
                 _quiz = (Quiz)xs.Deserialize(fileStream);
             }
         }
-
         private void start_button_Click(object sender, RoutedEventArgs e)
         {
             isArrow();
@@ -124,24 +160,19 @@ namespace Quiz_Reader
             end_button.Visibility = 0;
             question_record = 0;
 
-            clock.Visibility = 0;
-            timer(true);
+            timer_start();
         }
-
-        //timer co mnozy czas po zakoncz xdddddd
-        private void timer(bool start_stop)
+        private void timer_start()
         {
-            DispatcherTimer disTmr = new DispatcherTimer();
-            disTmr.Tick += new EventHandler(disTmr_Tick);
-            disTmr.Interval = new TimeSpan(0, 0, 1);
-            disTmr.Start();
-            if (!start_stop)
-            {
-                disTmr.Stop();
-            }
+            disTmr.IsEnabled = true;
+            clock.Visibility = 0;
+            clock.Text = time;
         }
-
-        public void disTmr_Tick(object sender, EventArgs e)
+        private void timer_stop()
+         {
+            disTmr.IsEnabled = false;
+         }
+        private void disTmr_Tick(object sender, EventArgs e)
         {
             sec++;
             if (sec < 10)
@@ -157,7 +188,6 @@ namespace Quiz_Reader
             }
             clock.Text = time;
         }
-
         private void end_button_Click(object sender, RoutedEventArgs e)
         {
             isArrow();
@@ -176,7 +206,7 @@ namespace Quiz_Reader
             next_button.Visibility = (Visibility)1;
 
             clock.Visibility = (Visibility)1;
-            timer(false);
+            timer_stop();
             summary();
         }
         public void isArrow()
@@ -202,14 +232,46 @@ namespace Quiz_Reader
         }
         private void uncheck()
         {
-            button_0.IsChecked = false;
-            button_1.IsChecked = false;
-            button_2.IsChecked = false;
-            button_3.IsChecked = false;
-            button_0.Foreground = Brushes.Black;
-            button_1.Foreground = Brushes.Black;
-            button_2.Foreground = Brushes.Black;
-            button_3.Foreground = Brushes.Black;
+            if (players_answers[question_record][0] == 1)
+            {
+                button_0.IsChecked = true;
+                button_0.Foreground = Brushes.Yellow;
+            }
+            else
+            {
+                button_0.IsChecked = false;
+                button_0.Foreground = Brushes.Black;
+            }
+            if (players_answers[question_record][1] == 1)
+            {
+                button_1.IsChecked = true;
+                button_1.Foreground = Brushes.Yellow;
+            }
+            else
+            {
+                button_1.IsChecked = false;
+                button_1.Foreground = Brushes.Black;
+            }
+            if (players_answers[question_record][2] == 1)
+            {
+                button_2.IsChecked = true;
+                button_2.Foreground = Brushes.Yellow;
+            }
+            else
+            {
+                button_2.IsChecked = false;
+                button_2.Foreground = Brushes.Black;
+            }
+            if (players_answers[question_record][3] == 1)
+            {
+                button_3.IsChecked = true;
+                button_3.Foreground = Brushes.Yellow;
+            }
+            else
+            {
+                button_3.IsChecked = false;
+                button_3.Foreground = Brushes.Black;
+            }
         }
         private void button_answer_Checked(object sender, RoutedEventArgs e)
         {
@@ -226,7 +288,6 @@ namespace Quiz_Reader
                 delete_answer(number_of_answer);
             }
         }
-
         private void to_answers(string number_of_button)
         {
             int index = int.Parse(number_of_button);
@@ -237,8 +298,6 @@ namespace Quiz_Reader
             int index = int.Parse(number_of_button);
             players_answers[question_record].SetValue(0, index);
         }
-
-
         private void next_button_Click(object sender, RoutedEventArgs e)
         {
             question_record += 1;
@@ -250,7 +309,6 @@ namespace Quiz_Reader
             button_2.Content = _quiz.Questions[question_record].Answers[2].Content;
             button_3.Content = _quiz.Questions[question_record].Answers[3].Content;
         }
-
         private void prev_button_Click(object sender, RoutedEventArgs e)
         {
             question_record -= 1;
@@ -264,15 +322,68 @@ namespace Quiz_Reader
         }
         private void summary()
         {
-            question_record = -1;
-            isArrow();
-            text_block.Text = "Poprawne odpowiedzi: \n";
-            text_block.Text += "Błędne odpowiedzi: \n";
+            question_record = 0;
+
+            var cor_incor = stats();
+
+            text_block.Text = "Poprawne odpowiedzi: "+ cor_incor[0].ToString()  +"\n";
+            text_block.Text += "Błędne/Brak odpowiedzi: "+ cor_incor[1].ToString() + " \n";
             text_block.Text += "Czas: " + time;
 
+            summary_text.Visibility = 0;
+            Scroll.Visibility = 0;
+            summary_text.Text = " ";
+            for (int i = 0; i < _quiz.Questions.Count(); i++)
+            {
+                string current = "  ";
+                for (int j = 0; j < 4; j++)
+                {
+                    if (players_answers[i][j] == 1)
+                    {
+                        current += _quiz.Questions[i].Answers[j].Content + ", ";
+                    }
+                }
 
+                string correct = "  ";
+                for (int j = 0; j < 4; j++)
+                {
+                    if (_quiz.Questions[i].Answers[j].Correct)
+                    {
+                        correct += _quiz.Questions[i].Answers[j].Content + ", ";
+                    }
+                }
+
+                summary_text.Text += "Pytanie " + (i + 1).ToString() + ": " + _quiz.Questions[i].Name + "\n";
+                summary_text.Text += "Twoje odpowiedzi: " + current.Remove(current.Length - 2) + "\n";
+                summary_text.Text += "Poprawne odpowiedzi:" + correct.Remove(correct.Length - 2) + "\n";
+                summary_text.Text += "\n";
+            }
         }
-
+        private int[] stats()            
+        {
+            int correct_n = 0;
+            int incorrect = 0;
+            for (int i = 0; i < _quiz.Questions.Count(); i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    if (players_answers[i][j] == 1 && _quiz.Questions[i].Answers[j].Correct)
+                    {
+                        correct_n += 1;
+                    }
+                    else if(players_answers[i][j] == 0 && _quiz.Questions[i].Answers[j].Correct)
+                    {
+                        incorrect += 1;
+                    }
+                    else if(players_answers[i][j] == 1 && !_quiz.Questions[i].Answers[j].Correct)
+                    {
+                        incorrect += 1;
+                    }
+                }
+            }
+            int[] ans = { correct_n, incorrect };
+            return ans;
+        }
         private void end_summary_button_Click(object sender, RoutedEventArgs e)
         {
             start();  
