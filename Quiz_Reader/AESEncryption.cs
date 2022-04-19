@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,7 +8,7 @@ namespace Quiz_Generator
     class AESEncryption : IEncryption
     {
         private AesCryptoServiceProvider Aes;
-         
+
         public AESEncryption()
         {
             Aes = new AesCryptoServiceProvider();
