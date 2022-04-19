@@ -103,7 +103,7 @@
         <!--clock-->
         <TextBlock x:Name="clock" Grid.Column="3"
                    Width="120" Margin="756,6,0,0" FontSize="35" HorizontalAlignment="Left" Height="40" Text="0:00"
-                   TextAlignment="Right"
+                   TextAlignment="Right" Visibility="Hidden"
                  Style="{StaticResource text}" Grid.ColumnSpan="2" VerticalAlignment="Top"/>
 
 

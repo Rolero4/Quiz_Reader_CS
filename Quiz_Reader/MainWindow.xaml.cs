@@ -24,12 +24,12 @@ namespace Quiz_Reader
         public int[][] players_answers;
         public int sec;
         public int min;
-        public string time = "";
+        public string time;
         DispatcherTimer disTmr = new DispatcherTimer();
 
 
 
-
+        //init methods
         public MainWindow()
         {
             InitializeComponent();
@@ -37,11 +37,31 @@ namespace Quiz_Reader
             _quiz = new Quiz();
             DecryptQuiz();
             start();
-            disTmr.Tick += new EventHandler(disTmr_Tick);
-            disTmr.Interval = TimeSpan.FromSeconds(1);
-            disTmr.Start();
-            disTmr.IsEnabled = false;
+            init_timer();
+
         }
+        private void start()
+        {
+            text_block.Text = "Aby rozpocząć Quiz kliknij przycisk: rozpocznij";
+            shuffle_quiz();
+            if (_quiz.RandomOrderAnswers)
+            {
+                shuffle_answers();
+            }
+
+            players_answers = new int[_quiz.Questions.Count()][];
+
+            for (int i = 0; i < _quiz.Questions.Count(); i++)
+            {
+                int[] line = new int[] { 0, 0, 0, 0 };
+                players_answers[i] = line;
+            }
+
+            uncheck();
+            vis_func(0);
+
+        }
+        // shuffling methods
         private void shuffle_quiz()
         {
             for (int i = _quiz.Questions.Count() - 1; i >= 0; i--)
@@ -67,38 +87,7 @@ namespace Quiz_Reader
                 }
             }
         }
-        private void start()
-        {
-            text_block.Text = "Aby rozpocząć Quiz kliknij przycisk: rozpocznij";
-            vis_check(false);
-            clock.Visibility = (Visibility)1;
-
-            shuffle_quiz();
-            if (_quiz.RandomOrderAnswers)
-            {
-                shuffle_answers();
-            }
-
-            players_answers = new int[_quiz.Questions.Count()][];
-
-            for (int i = 0; i < _quiz.Questions.Count(); i++)
-            {
-                int[] line = new int[] { 0, 0, 0, 0 };
-                players_answers[i] = line;
-            }
-
-            uncheck();
-
-            time = "0:00";
-            sec = 0;
-            min = 0;
-
-            summary_text.Visibility = (Visibility)1;
-
-            vis_func(0);
-            prev_button.Visibility = (Visibility)1;
-            next_button.Visibility = (Visibility)1;
-        }
+        //loading methods
         private void DecryptQuiz()
         {
             LoadQuizXML();
@@ -120,64 +109,31 @@ namespace Quiz_Reader
                 _quiz = (Quiz)xs.Deserialize(fileStream);
             }
         }
+        //function buttons
         private void start_button_Click(object sender, RoutedEventArgs e)
         {
+            question_record = 0;
             isArrow();
-            text_block.Text = _quiz.Questions[0].Name;
-            question_record = 0;
-            button_content();
-            vis_check(true);
-
-
+            button_textblock_content();
             vis_func(1);
-            question_record = 0;
-
             timer_start();
-        }
-        private void timer_start()
-        {
-            disTmr.IsEnabled = true;
-            clock.Visibility = 0;
-            clock.Text = time;
-        }
-        private void timer_stop()
-        {
-            disTmr.IsEnabled = false;
-        }
-        private void disTmr_Tick(object sender, EventArgs e)
-        {
-            sec++;
-            if (sec < 10)
-                time = min.ToString() + ":0" + sec.ToString();
-            else if (sec >= 10 && sec < 60)
-            {
-                time = min.ToString() + ":" + sec.ToString();
-            }
-            else
-            {
-                min++;
-                sec = 0;
-            }
-            clock.Text = time;
         }
         private void end_button_Click(object sender, RoutedEventArgs e)
         {
             isArrow();
-
-
-            vis_check(false);
             vis_func(2);
-            prev_button.Visibility = (Visibility)1;
-            next_button.Visibility = (Visibility)1;
-
-            clock.Visibility = (Visibility)1;
             timer_stop();
             summary();
         }
+        private void end_summary_button_Click(object sender, RoutedEventArgs e)
+        {
+            start();
+        }
+        //prev/next buttons methods
         public void isArrow()
         {
 
-            if (question_record <= 0)
+            if (question_record == 0)
             {
                 prev_button.Visibility = (Visibility)1;
             }
@@ -238,6 +194,7 @@ namespace Quiz_Reader
                 button_3.Foreground = Brushes.Black;
             }
         }
+        //checking methods
         private void button_answer_Checked(object sender, RoutedEventArgs e)
         {
             var checked_button = sender as CheckBox;
@@ -268,17 +225,16 @@ namespace Quiz_Reader
             question_record += 1;
             uncheck();
             isArrow();
-            text_block.Text = _quiz.Questions[question_record].Name;
-            button_content();
+            button_textblock_content();
         }
         private void prev_button_Click(object sender, RoutedEventArgs e)
         {
             question_record -= 1;
             uncheck();
             isArrow();
-            text_block.Text = _quiz.Questions[question_record].Name;
-            button_content();
+            button_textblock_content();
         }
+        //summary methods
         private void summary()
         {
             question_record = 0;
@@ -289,8 +245,6 @@ namespace Quiz_Reader
             text_block.Text += "Błędne/Brak odpowiedzi: " + cor_incor[1].ToString() + " \n";
             text_block.Text += "Czas: " + time;
 
-            summary_text.Visibility = 0;
-            Scroll.Visibility = 0;
             summary_text.Text = " ";
             for (int i = 0; i < _quiz.Questions.Count(); i++)
             {
@@ -340,9 +294,55 @@ namespace Quiz_Reader
             int[] ans = { correct_n, incorrect };
             return ans;
         }
-        private void end_summary_button_Click(object sender, RoutedEventArgs e)
+        //visibility & content methods 
+        private void button_textblock_content()
         {
-            start();
+            text_block.Text = _quiz.Questions[question_record].Name;
+            button_0.Content = _quiz.Questions[question_record].Answers[0].Content;
+            button_1.Content = _quiz.Questions[question_record].Answers[1].Content;
+            button_2.Content = _quiz.Questions[question_record].Answers[2].Content;
+            button_3.Content = _quiz.Questions[question_record].Answers[3].Content;
+        }
+        private void vis_func(int func)
+        {
+            switch (func)
+            {
+                case 0:
+                    start_button.IsEnabled = true;
+                    start_button.Visibility = 0;
+                    end_button.IsEnabled = false;
+                    end_button.Visibility = (Visibility)1;
+                    end_summary_button.IsEnabled = false;
+                    end_summary_button.Visibility = (Visibility)1;
+                    vis_check(false);
+                    summary_text.Visibility = (Visibility)1;
+                    prev_button.Visibility = (Visibility)1;
+                    next_button.Visibility = (Visibility)1;
+                    break;
+
+                case 1:
+                    start_button.IsEnabled = false;
+                    start_button.Visibility = (Visibility)1;
+                    end_button.IsEnabled = true;
+                    end_button.Visibility = 0;
+                    end_summary_button.IsEnabled = false;
+                    end_summary_button.Visibility = (Visibility)1;
+                    vis_check(true);
+                    break;
+
+                case 2:
+                    start_button.IsEnabled = false;
+                    start_button.Visibility = (Visibility)1;
+                    end_button.IsEnabled = false;
+                    end_button.Visibility = (Visibility)1;   
+                    end_summary_button.IsEnabled = true;
+                    end_summary_button.Visibility = 0;
+                    vis_check(false);
+                    summary_text.Visibility =0;
+                    prev_button.Visibility = (Visibility)1;
+                    next_button.Visibility = (Visibility)1;
+                    break;
+            }
         }
         private void vis_check(bool check)
         {
@@ -361,45 +361,44 @@ namespace Quiz_Reader
                 button_3.Visibility = 0;
             }
         }
-        private void button_content()
+
+        //timer
+        private void init_timer()
         {
-            button_0.Content = _quiz.Questions[question_record].Answers[0].Content;
-            button_1.Content = _quiz.Questions[question_record].Answers[1].Content;
-            button_2.Content = _quiz.Questions[question_record].Answers[2].Content;
-            button_3.Content = _quiz.Questions[question_record].Answers[3].Content;
+            disTmr.Tick += new EventHandler(disTmr_Tick);
+            disTmr.Interval = TimeSpan.FromSeconds(1);
+            disTmr.Start();
+            disTmr.IsEnabled = false;
         }
-        private void vis_func(int func)
+        private void timer_start()
         {
-            switch (func)
+            disTmr.IsEnabled = true;
+            time = "0:00";
+            sec = 0;
+            min = 0;
+            clock.Visibility = 0;
+            clock.Text = time;
+        }
+        private void timer_stop()
+        {
+            disTmr.IsEnabled = false;
+            clock.Visibility = (Visibility)1;
+        }
+        private void disTmr_Tick(object sender, EventArgs e)
+        {
+            sec++;
+            if (sec < 10)
+                time = min.ToString() + ":0" + sec.ToString();
+            else if (sec >= 10 && sec < 60)
             {
-                case 0:
-                    start_button.IsEnabled = true;
-                    start_button.Visibility = 0;
-                    end_button.IsEnabled = false;
-                    end_button.Visibility = (Visibility)1;
-                    end_summary_button.IsEnabled = false;
-                    end_summary_button.Visibility = (Visibility)1;
-                    break;
-
-                case 1:
-                    start_button.IsEnabled = false;
-                    start_button.Visibility = (Visibility)1;
-                    end_button.IsEnabled = true;
-                    end_button.Visibility = 0;
-                    end_summary_button.IsEnabled = false;
-                    end_summary_button.Visibility = (Visibility)1;
-                    break;
-
-                case 2:
-                    start_button.IsEnabled = false;
-                    start_button.Visibility = (Visibility)1;
-                    end_button.IsEnabled = false;
-                    end_button.Visibility = (Visibility)1;
-                    end_summary_button.IsEnabled = true;
-                    end_summary_button.Visibility = 0;
-                    break;
+                time = min.ToString() + ":" + sec.ToString();
             }
+            else
+            {
+                min++;
+                sec = 0;
+            }
+            clock.Text = time;
         }
-
     }
 }
