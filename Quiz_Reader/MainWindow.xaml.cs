@@ -297,7 +297,7 @@ namespace Quiz_Reader
         //visibility & content methods 
         private void button_textblock_content()
         {
-            text_block.Text = _quiz.Questions[question_record].Name;
+            text_block.Text ="Pytanie "+(question_record+1).ToString()+"/"+_quiz.Questions.Count().ToString()+": " + _quiz.Questions[question_record].Name;
             button_0.Content = _quiz.Questions[question_record].Answers[0].Content;
             button_1.Content = _quiz.Questions[question_record].Answers[1].Content;
             button_2.Content = _quiz.Questions[question_record].Answers[2].Content;
@@ -361,7 +361,6 @@ namespace Quiz_Reader
                 button_3.Visibility = 0;
             }
         }
-
         //timer
         private void init_timer()
         {
